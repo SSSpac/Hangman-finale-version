@@ -96,7 +96,34 @@ document.addEventListener("click", (e) => {
         wrongAttempts++;
         // adding the wrong class 
         theDraw.classList.add(`wrong-${wrongAttempts}`);
+
+        //playing the lost audio 
+        document.getElementById("lost").play();
+        if (wrongAttempts === 8) {
+            
+            endGame();
+            
+            lettersContainer.classList.add("finished");
+        }
+        
+    } else {
+        document.getElementById("win").play();
+
+
     }
 
     }
 });
+
+//ending of the game 
+function endGame() {
+    //the win screen 
+    let div = document.createElement("div");
+    let divText = document.createTextNode(`Game Over, The Word is ${randomValueValue}`)
+
+    div.appendChild(divText);
+
+    div.className = 'popup';
+
+    document.body.appendChild(div);
+}
