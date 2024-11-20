@@ -1,129 +1,70 @@
-// letters  
-const letters = "abcdefghijklmnopqrstuvwxyz";
-
-// Getting the array from letters 
-let lettersArray = Array.from(letters);
-
-// Selecting the letter container 
-let lettersContainer = document.querySelector(".letters");
-
-// Generating the letters 
-lettersArray.forEach(letter => {
-    let span = document.createElement("span");
-    let theLetter = document.createTextNode(letter);
-    span.appendChild(theLetter);
-    span.className = 'letter-box';
-    lettersContainer.appendChild(span);
-});
-
-// Object of words and a category 
-const words =  {
-    movies: ["Avatar", "Toy story", "The god father", "Inception", "Men in Black", "Parasite"],
-    sports: ["Swimming", "Tennis", "Surfing", "Boxing", "Hockey", "Gymnastics"]
+//  first create an object of wards and categoriess
+const words = {
+    movies: ["Avatar", "Toy Story", "The Godfather", "Inception", "Parasite"],
+    sports: ["Swimming", "Tennis", "Surfing", "Boxing", "Hockey"]
 };
 
-// Get random properties 
+// Get random category and word
 let allKeys = Object.keys(words);
-let randomPropNumber = Math.floor(Math.random() * allKeys.length);
-let randomPropName = allKeys[randomPropNumber];
-let randomPropValue = words[randomPropName];
+let randomCategory = allKeys[Math.floor(Math.random() * allKeys.length)];
+let randomWord = words[randomCategory][Math.floor(Math.random() * words[randomCategory].length)].toLowerCase();
 
-let randomValueNumber = Math.floor(Math.random() * randomPropValue.length);
-let randomValueValue = randomPropValue[randomValueNumber];
+// Display categorys information
+document.querySelector(".game-info .category span").innerHTML = randomCategory;
 
-// Set the info for the category 
-document.querySelector(".game-info .category span").innerHTML = randomPropName;
-
-// Select letters guess elements
-let lettersGuessContainer = document.querySelector(".letters-guess");
-
-// Converting the chosen word to an array 
-let lettersAndSpace = Array.from(randomValueValue);
-console.log(lettersAndSpace);
-
-// Create the spans depending on the word 
-lettersAndSpace.forEach(letter => {
-    let emptySpan = document.createElement("span");
-    if (letter === '') {
-        emptySpan.className = 'with-space';
-        emptySpan.innerHTML = ' '; // Placeholder for spaces
-    } else {
-        emptySpan.innerHTML = '_'; // Placeholder for guessed letters
-    }
-    lettersGuessContainer.appendChild(emptySpan);
-});
-
-// Selecting the guessed spans
-let guessSpans = document.querySelectorAll(".letters-guess span");
-
-// setting the wrong attempts
-
+// Prepare game board
+let guessedWordArray = randomWord.split("").map(letter => (letter === " " ? " " : "_"));
 let wrongAttempts = 0;
-let theDraw = document.querySelector(".hangman-draw");
+const maxWrongAttempts = 8;
 
-// setting the statue
+// Function to display the current guessed word
+function displayGuessedWord() {
+    let display = guessedWordArray.map(letter => (letter === " " ? " " : letter)).join(" ");
+    document.querySelector(".letters-guess").innerHTML = display;
+}
 
-let theStatus = false;
+// Display initial word state
+displayGuessedWord();
 
-// Handling the click on letters 
-document.addEventListener("click", (e) => {
-    let theStatus = false;
-    if (e.target.className === 'letter-box') {
-        e.target.classList.add("clicked");
+// Main game loop
+while (wrongAttempts < maxWrongAttempts && guessedWordArray.includes("_")) {
+    let guess = prompt(`Guess a letter (Category: ${randomCategory}):\n${guessedWordArray.join(" ")}`);
+    
+    if (!guess || guess.length !== 1 || !/^[a-z]$/i.test(guess)) {
+        alert("Please enter a valid single letter.");
+        continue;
+    }
 
-        let theClickedLetter = e.target.innerHTML.toLowerCase();
-
-        let theChosenWord = randomValueValue.toLowerCase();
-
-        // The chosen word
-        theChosenWord.split('').forEach((wordLetter, Wordindex) => {
-            if (theClickedLetter === wordLetter) {
-                //the correct statos
-                theStatus= true;
-                // The loop on the spans
-                guessSpans.forEach((span, spanIndex) => {
-                    if (Wordindex === spanIndex) {
-                        
-                        span.innerHTML = theClickedLetter;
-                    }
-                });
-            
+    guess = guess.toLowerCase();
+    if (randomWord.includes(guess)) {
+        // if the rigt Correct guess
+        randomWord.split("").forEach((letter, index) => {
+            if (letter === guess) {
+                guessedWordArray[index] = guess;
             }
         });
-
-        //outside the loop 
-    if (theStatus !== true) {
-        wrongAttempts++;
-        // adding the wrong class 
-        theDraw.classList.add(`wrong-${wrongAttempts}`);
-
-        //playing the lost audio 
-        document.getElementById("lost").play();
-        if (wrongAttempts === 8) {
-            
-            endGame();
-            
-            lettersContainer.classList.add("finished");
-        }
-        
+        alert("Correct guess!");
     } else {
-        document.getElementById("win").play();
-
-
+        // Wrong guess
+        wrongAttempts++;
+        alert(`Wrong guess! Attempts left: ${maxWrongAttempts - wrongAttempts}`);
+        document.querySelector(".hangman-draw").classList.add(`wrong-${wrongAttempts}`);
     }
 
-    }
-});
-
-//ending of the game 
-function endGame() {
-    //the win screen 
-    let div = document.createElement("div");
-    let divText = document.createTextNode(`Game Over, The Word is ${randomValueValue}`)
-
-    div.appendChild(divText);
-
-    div.className = 'popup';
-
-    document.body.appendChild(div);
+    displayGuessedWord();
 }
+
+// if the Game over
+if (guessedWordArray.includes("_")) {
+    alert(`Game Over :(  The word was: ${randomWord}`);
+} else {
+    alert(`Congrato lations! You guessed the word: ${randomWord}`);
+}
+
+// end game message
+let popup = document.createElement("div");
+popup.className = "popup";
+popup.innerText = guessedWordArray.includes("_")
+    ? `Game Over:(  The word was: ${randomWord}`
+    : `Congratolations! You guessed the word: ${randomWord}`;
+document.body.appendChild(popup);
